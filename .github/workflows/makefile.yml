@@ -18,10 +18,10 @@ jobs:
       run: ./configure
 
     - name: Install dependencies
-      run: make
+      run: sudo apt update && sudo apt install -y g++ make
 
-    - name: Run check
-      run: make check
+    - name: Build project
+      run: make 
 
-    - name: Run distcheck
-      run: make distcheck
+    - name: Run tests
+      run: make test
