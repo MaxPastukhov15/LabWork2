@@ -1,21 +1,30 @@
 CXX = g++
 CXXFLAGS = -g -Wall -Werror -Wpedantic
-LDFLAGS = -pthread  # Needed for Google Test
+LDFLAGS = -pthread  # Required for Google Test
 
-GTEST_DIR = /usr/local/include/gtest  # System-wide installation path
-GTEST_LIBS = -lgtest -lgtest_main
+# Google Test installation paths
+GTEST_LIB = /usr/local/lib
+GTEST_INCLUDE = /usr/local/include
 
-TARGET = test
-SOURCES =  test.cpp 
-OBJECTS = $(SOURCES:.cpp=.o)
+# Source files
+SRCS = test.cpp
+OBJS = $(SRCS:.cpp=.o)
+TARGET = test_runner
 
-$(TARGET): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) $(GTEST_LIBS) -o $(TARGET) $(OBJECTS)
+all: $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(CXX) $(CXXFLAGS) -I$(GTEST_INCLUDE) $^ -o $@ -L$(GTEST_LIB) -lgtest -lgtest_main $(LDFLAGS)
+
 %.o: %.cpp
-	$(CXX) $(CXXFLAGS) -I$(GTEST_DIR) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -I$(GTEST_INCLUDE) -c $< -o $@
+
+test: $(TARGET)
+	./$(TARGET)
 
 clean:
-	rm -f $(OBJECTS) $(TARGET)
+	rm -f $(OBJS) $(TARGET)
+
 
 format:
 	astyle -A1 -s4 *.cpp *.hpp
