@@ -19,7 +19,7 @@ jobs:
       run: sudo apt update && sudo apt install -y g++ make
 
     - name: Build project
-      run: make -C tests/Makefile
+      run: make -C ~/Desktop/LabWork2/Lbawork2/tests/Makefile
 
     - name: Run tests
       run: ./test
