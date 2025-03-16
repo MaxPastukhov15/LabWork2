@@ -1,6 +1,6 @@
 CXX = g++
 CXXFLAGS = -g -Wall -Werror -Wpedantic 
-TARGET = im_ed
+TARGET = run_game
 SOURCES = main.cpp   Characters.cpp Game.cpp Location.cpp Quests.cpp Thing.cpp 
 OBJECTS = $(SOURCES:.cpp=.o)
 
