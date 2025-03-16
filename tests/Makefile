@@ -7,7 +7,7 @@ GTEST_LIB = /usr/local/lib
 GTEST_INCLUDE = /usr/local/include
 
 # Source files and include directory
-SRCS = ../src/test.cpp ../src/Characters.cpp ../src/Game.cpp ../src/Location.cpp ../src/Quests.cpp ../src/Thing.cpp
+SRCS = ../src/Characters.cpp ../src/Game.cpp ../src/Location.cpp ../src/Quests.cpp ../src/Thing.cpp test.cpp
 OBJS = $(SRCS:.cpp=.o)
 TARGET = test_runner
 
