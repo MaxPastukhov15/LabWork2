@@ -1,0 +1,107 @@
+[==========] Running 14 tests from 6 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from MenuTest
+[ RUN      ] MenuTest.StartQuestTest
+Quest started: Quest One
+Started quest: Quest One
+Quest started: Quest Two
+Started quest: Quest Two
+Quest started: Quest One
+Started quest: Quest One
+[       OK ] MenuTest.StartQuestTest (1 ms)
+[ RUN      ] MenuTest.CompleteQuestTest
+Quest started: Quest One
+Started quest: Quest One
+Quest started: Quest Two
+Started quest: Quest Two
+Quest started: Quest One
+Started quest: Quest One
+Quest progress updated: 50
+Quest not found or not completed!
+test.cpp:84: Failure
+Expected equality of these values:
+  quest1->check_completion()
+    Which is: false
+  true
+[  FAILED  ] MenuTest.CompleteQuestTest (0 ms)
+[ RUN      ] MenuTest.UpdateQuestProgressTest
+Quest started: Quest One
+Started quest: Quest One
+Quest started: Quest Two
+Started quest: Quest Two
+Quest started: Quest One
+Started quest: Quest One
+Quest progress updated: 40
+test.cpp:90: Failure
+Expected equality of these values:
+  quest1->get_progress()
+    Which is: 0
+  40
+Quest progress updated: 100
+Quest completed: Quest One
+Rewards obtained: Gold
+test.cpp:93: Failure
+Expected equality of these values:
+  quest1->get_progress()
+    Which is: 0
+  100
+test.cpp:94: Failure
+Expected equality of these values:
+  quest1->check_completion()
+    Which is: false
+  true
+[  FAILED  ] MenuTest.UpdateQuestProgressTest (0 ms)
+[----------] 3 tests from MenuTest (1 ms total)
+
+[----------] 2 tests from CharactersTest
+[ RUN      ] CharactersTest.PlayerHealthRestoration
+HP restored to 100
+[       OK ] CharactersTest.PlayerHealthRestoration (0 ms)
+[ RUN      ] CharactersTest.PlayerStaminaManagement
+[       OK ] CharactersTest.PlayerStaminaManagement (0 ms)
+[----------] 2 tests from CharactersTest (0 ms total)
+
+[----------] 2 tests from ThingTest
+[ RUN      ] ThingTest.BedInteraction
+HP restored to 100
+Stamina restored to 50
+You feel refreshed after sleeping.
+[       OK ] ThingTest.BedInteraction (0 ms)
+[ RUN      ] ThingTest.ChestItemManagement
+Added Health Potion to the chest.
+Retrieved Health Potion from the chest.
+[       OK ] ThingTest.ChestItemManagement (0 ms)
+[----------] 2 tests from ThingTest (0 ms total)
+
+[----------] 2 tests from LocationTest
+[ RUN      ] LocationTest.EnterLocationTest
+[       OK ] LocationTest.EnterLocationTest (0 ms)
+[ RUN      ] LocationTest.MoveToNeighborTest
+[       OK ] LocationTest.MoveToNeighborTest (0 ms)
+[----------] 2 tests from LocationTest (0 ms total)
+
+[----------] 2 tests from HouseTest
+[ RUN      ] HouseTest.ChestManagementTest
+[       OK ] HouseTest.ChestManagementTest (0 ms)
+[ RUN      ] HouseTest.InteractWithThingTest
+[       OK ] HouseTest.InteractWithThingTest (0 ms)
+[----------] 2 tests from HouseTest (0 ms total)
+
+[----------] 3 tests from GameTest
+[ RUN      ] GameTest.StartGameTest
+[       OK ] GameTest.StartGameTest (0 ms)
+[ RUN      ] GameTest.AdvanceTurnTest
+[       OK ] GameTest.AdvanceTurnTest (0 ms)
+[ RUN      ] GameTest.MoveToNeighborTest
+[       OK ] GameTest.MoveToNeighborTest (0 ms)
+[----------] 3 tests from GameTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 14 tests from 6 test suites ran. (2 ms total)
+[  PASSED  ] 12 tests.
+[  FAILED  ] 2 tests, listed below:
+[  FAILED  ] MenuTest.CompleteQuestTest
+[  FAILED  ] MenuTest.UpdateQuestProgressTest
+
+ 2 FAILED TESTS
+

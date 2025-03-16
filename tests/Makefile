@@ -7,7 +7,7 @@ GTEST_LIB = /usr/local/lib
 GTEST_INCLUDE = /usr/local/include
 
 # Source files
-SRCS = test.cpp
+SRCS = test.cpp Characters.cpp Game.cpp Location.cpp Quests.cpp Thing.cpp
 OBJS = $(SRCS:.cpp=.o)
 TARGET = test_runner
 
@@ -28,7 +28,3 @@ clean:
 
 format:
 	astyle -A1 -s4 *.cpp *.hpp
-
-
-
-
