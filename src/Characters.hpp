@@ -37,11 +37,12 @@ public:
             std::cout << "Not enough stamina to attack!\n";
             return 0;
         }
-        int total_damage = base_damage;
+    int total_damage = base_damage;
         target.take_damage(total_damage);
         current_stamina -= 10;
         return total_damage;
     }
+    int get_health() const { return current_hp; }
 };
 
 /**
@@ -81,7 +82,7 @@ public:
 
     void add_to_inventory(std::shared_ptr<Item> item);
 
-    int get_health() const { return current_hp; }
+    
     int get_stamina() const { return current_stamina; }
 };
 
@@ -111,6 +112,7 @@ public:
         : Enemy(50, 20, 5), weapon(weapon), info(info) {}
 
     void display_info();
+     
 };
 
 /**
@@ -125,6 +127,7 @@ public:
         : Enemy(70, 30, 7), weapon(weapon), info(info) {}
 
     void display_info();
+    
 };
 
 /**
@@ -140,6 +143,7 @@ public:
 
     Boss(Boss& obj) = delete;
     void display_info();
+    
 };
 
 #endif // CHARACTERS_HPP
