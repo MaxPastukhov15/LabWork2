@@ -60,14 +60,6 @@ void Chest::list_items() const {
 }
 
 /**
- * @brief Calculates final damage considering armor.
- */
-int Damage::calculate_damage(int armor) const {
-    int final_damage = damage - (armor / 2);
-    return (final_damage > 0) ? final_damage : 1;
-}
-
-/**
  * @brief Uses the weapon.
  */
 void Weapon::use(Player& player) {

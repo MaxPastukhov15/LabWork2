@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <memory>
-
+#include "Thing.hpp"
 // Forward declarations
 class Item;
 class Weapon;
@@ -21,10 +21,11 @@ protected:
     int max_stamina;
     int current_stamina;
     int base_damage;
-
+    int defense;         
+    bool is_defending;
 public:
-    Entity(int hp = 100, int stamina = 50, int dmg = 10)
-        : max_hp(hp), current_hp(hp), max_stamina(stamina), current_stamina(stamina), base_damage(dmg) {}
+    Entity(int hp = 100, int stamina = 150, int dmg = 10, int def = 5)
+        : max_hp(hp), current_hp(hp), max_stamina(stamina),current_stamina(stamina), base_damage(dmg), defense(def),is_defending(false) {}
 
     virtual int take_damage(int amount) {
         current_hp -= amount;
@@ -33,7 +34,7 @@ public:
     }
 
     virtual int attack(Entity& target) {
-        if (current_stamina < 10) {
+        if (current_stamina <= 0) {
             std::cout << "Not enough stamina to attack!\n";
             return 0;
         }
@@ -42,7 +43,18 @@ public:
         current_stamina -= 10;
         return total_damage;
     }
+    
+    virtual void defend() {
+        is_defending = true;
+        current_stamina -= 5;  
+        std::cout << "Bracing for impact!\n";
+    }
+    
     int get_health() const { return current_hp; }
+    
+    int get_max_health() const { return max_hp; }
+       
+    int get_max_stamina() const { return max_stamina; }
 };
 
 /**
@@ -63,6 +75,18 @@ public:
     void equip_weapon(Weapon* weapon);
 
     void equip_shield(Shield* shield);
+    
+    void defend() override {
+        if (current_stamina >= 5) {
+            Entity::defend();
+            if (equipped_shield) {
+                defense += equipped_shield->get_defense();
+                std::cout << "Shield boosts your defense!\n";
+            }
+        } else {
+            std::cout << "Not enough stamina to defend!\n";
+        }
+    }
 
     void restore_hp() {
         current_hp = max_hp;
@@ -84,6 +108,8 @@ public:
 
     
     int get_stamina() const { return current_stamina; }
+    
+    
 };
 
 /**
@@ -96,8 +122,10 @@ protected:
 
 public:
     Enemy(int hp, int stamina, int dmg) : Entity(hp, stamina, dmg) {}
-
+    
+    void action(Player& player);
     void drop_loot(Player& player);
+    void add_loot(std::shared_ptr<Item> item); 
 };
 
 /**
@@ -109,7 +137,7 @@ class Goblin : public Enemy {
 
 public:
     Goblin(Weapon* weapon, const std::string& info)
-        : Enemy(50, 20, 5), weapon(weapon), info(info) {}
+        : Enemy(20, 20, 5), weapon(weapon), info(info) {}
 
     void display_info();
      

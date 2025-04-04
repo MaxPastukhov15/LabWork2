@@ -12,57 +12,67 @@ void fight_goblin(Player& player, Goblin& goblin) {
     std::cout << "You are fighting a Goblin!" << std::endl;
 
     while (player.get_health() > 0 && goblin.get_health() > 0) {
+        // Auto-flee if conditions are met
+        if (player.get_health() < 20 || player.get_stamina() < 10) {
+            std::cout << "You're too weak! Running away automatically...\n";
+            return;
+        }
+
         std::cout << "\n=== Combat Menu ===" << std::endl;
         std::cout << "1. Attack" << std::endl;
-        std::cout << "2. Use Health Potion" << std::endl;
-        std::cout << "3. Run Away" << std::endl;
+        std::cout << "2. Defend" << std::endl;
+        std::cout << "3. Use Item" << std::endl;
+        std::cout << "4. Run Away" << std::endl;
         std::cout << "Enter your choice: ";
 
         int choice;
         std::cin >> choice;
 
         switch (choice) {
-            case 1: {
-                // Player attacks the Goblin
+            case 1: {  // Attack
                 int damage = player.attack(goblin);
-                std::cout << "You attacked the Goblin for " << damage << " damage!" << std::endl;
-                if (goblin.get_health() <= 0) {
-                    std::cout << "You defeated the Goblin!" << std::endl;
-                    return;
-                }
+                std::cout << "You attack for " << damage << " damage!\n";
                 break;
             }
-            case 2: {
-                // Player uses a health potion
+            case 2: {  // Defend
+                player.defend();
+                break;
+            }
+            case 3: {  // Use Item
                 auto potion = std::make_shared<Drugs>("Health Potion", 20);
-                if (player.get_health() < 100) {
+                if (player.get_health() < player.get_max_health()) {
                     player.use_item(potion);
-                    std::cout << "You used a Health Potion and restored 20 HP." << std::endl;
                 } else {
-                    std::cout << "Your health is already full!" << std::endl;
+                    std::cout << "Health already full!\n";
                 }
                 break;
             }
-            case 3: {
-                // Player runs away
-                std::cout << "You ran away from the fight!" << std::endl;
+            case 4: {  // Run
+                std::cout << "You retreat from battle!\n";
                 return;
             }
             default: {
-                std::cout << "Invalid choice. Try again!" << std::endl;
-                break;
+                std::cout << "Invalid choice!\n";
+                continue;
             }
         }
 
-        // Goblin attacks the player
+        // Enemy turn if still alive
         if (goblin.get_health() > 0) {
-            int damage = goblin.attack(player);
-            std::cout << "The Goblin attacked you for " << damage << " damage!" << std::endl;
-            if (player.get_health() <= 0) {
-                std::cout << "You were defeated by the Goblin!" << std::endl;
+            goblin.action(player);
+            if (goblin.get_health() <= 0) {
+                std::cout << "You defeated the Goblin!\n";
+                goblin.drop_loot(player);
                 return;
             }
         }
+
+        // Display status
+        std::cout << "\nStatus: HP=" << player.get_health() 
+                  << "/" << player.get_max_health()
+                  << " ST=" << player.get_stamina()
+                  << "/" << player.get_max_stamina() << "\n";
+        std::cout << "Goblin: HP=" << goblin.get_health() << "\n";
     }
 }
 
@@ -74,9 +84,11 @@ int main() {
     // Create a player
     Player player;
 
-    // Create a Goblin enemy
-    Goblin goblin(nullptr, "A nasty little Goblin");
-
+   // Create a Goblin enemy with some loot
+   Goblin goblin(nullptr, "A nasty little Goblin");
+   auto gold = std::make_shared<Drugs>("Gold Coin", 0); // 0 healing since it's gold
+   goblin.add_loot(gold);
+   
     // Create a quest
     auto quest = std::make_shared<Quests>("1", "Defeat the Goblin", "Defeat the goblin in the forest", "Gold and Experience");
     Menu menu(&player);

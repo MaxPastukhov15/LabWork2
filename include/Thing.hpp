@@ -85,18 +85,6 @@ public:
 };
 
 /**
- * @class Damage
- * @brief Handles damage mechanics.
- */
-class Damage {
-protected:
-    int damage;
-public:
-    explicit Damage(int dmg) : damage(dmg) {}
-    virtual int calculate_damage(int armor) const;
-};
-
-/**
  * @class Weapon
  * @brief Represents a weapon.
  */
@@ -142,9 +130,10 @@ class Shield : public Item {
 private:
     int defense_value;
 public:
-    explicit Shield(const std::string& name, int defense) : Item(name), defense_value(defense) {}
+    explicit Shield(const std::string& name, int defense) 
+        : Item(name), defense_value(defense) {}
     int get_defense() const { return defense_value; }
-    std::string get_name() const  {return name;}
+    std::string get_name() const { return name; }
 };
 
 /**
