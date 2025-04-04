@@ -6,21 +6,21 @@ LDFLAGS = -pthread  # Required for Google Test
 GTEST_LIB = /usr/local/lib
 GTEST_INCLUDE = /usr/local/include
 
-# Source files and include directory
+# Source files and include directories
 SRCS = ../src/Characters.cpp ../src/Game.cpp ../src/Location.cpp ../src/Quests.cpp ../src/Thing.cpp test.cpp
 OBJS = $(SRCS:.cpp=.o)
 TARGET = test_runner
 
-# Include directory for the src folder
-INCLUDE_DIR = ../src
+# Include directories (add all possible header locations)
+INCLUDE_DIRS = -I../src -I../include
 
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -I$(GTEST_INCLUDE) -I$(INCLUDE_DIR) $^ -o $@ -L$(GTEST_LIB) -lgtest -lgtest_main $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(INCLUDE_DIRS) -I$(GTEST_INCLUDE) $^ -o $@ -L$(GTEST_LIB) -lgtest -lgtest_main $(LDFLAGS)
 
 %.o: %.cpp
-	$(CXX) $(CXXFLAGS) -I$(GTEST_INCLUDE) -I$(INCLUDE_DIR) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDE_DIRS) -I$(GTEST_INCLUDE) -c $< -o $@
 
 test: $(TARGET)
 	./$(TARGET)
