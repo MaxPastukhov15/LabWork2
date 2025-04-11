@@ -46,7 +46,8 @@ public:
     
     virtual void defend() {
         is_defending = true;
-        current_stamina -= 5;  
+        current_stamina -= 5;
+        current_hp += defense; 
         std::cout << "Bracing for impact!\n";
     }
     
