@@ -1,25 +1,29 @@
-# ===== Базовый образ с GCC и Make =====
 FROM gcc:12.2.0
 
-# Установка зависимостей (gtest для тестов)
+# Install dependencies
 RUN apt-get update && \
     apt-get install -y \
     make \
-    libgtest-dev \
-    && rm -rf /var/lib/apt/lists/*
+    astyle \
+    cmake \
+    libgtest-dev && \
+    rm -rf /var/lib/apt/lists/*
 
-# Сборка Google Test
-RUN cd /usr/src/gtest && \
-    cmake CMakeLists.txt && \
-    make && \
-    cp *.a /usr/lib
+# Set working directory
+WORKDIR /LabWork2
 
-# Копирование всего проекта
-WORKDIR /app
+# Copy only what's needed for building
+COPY Makefile .
+COPY src/ src/
+COPY include/ include/
+
+# Build and verify the executable exists
+RUN make && \
+    ls -la && \
+    test -f run_game || (echo "run_game not found!" && exit 1)
+
+# Copy remaining files
 COPY . .
 
-# Сборка проекта через Makefile
-RUN make && make test
-
-# Запуск (можно переопределить командой `docker run`)
+# Set the entrypoint
 CMD ["./run_game"]

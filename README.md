@@ -15,8 +15,8 @@ Labwork 2:
 
 -astyle is used in makefile
 ## Build
-make
+make (or docker-compose build)
 ## Run
-./run_game
+./run_game (docker-compose run --service-ports app)
 ## Clean
-make clean
+make clean (docker-compose down)
