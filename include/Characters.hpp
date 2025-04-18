@@ -27,29 +27,11 @@ public:
     Entity(int hp = 100, int stamina = 150, int dmg = 10, int def = 5)
         : max_hp(hp), current_hp(hp), max_stamina(stamina),current_stamina(stamina), base_damage(dmg), defense(def),is_defending(false) {}
 
-    virtual int take_damage(int amount) {
-        current_hp -= amount;
-        if (current_hp < 0) current_hp = 0;
-        return current_hp;
-    }
+    virtual int take_damage(int amount);
 
-    virtual int attack(Entity& target) {
-        if (current_stamina <= 0) {
-            std::cout << "Not enough stamina to attack!\n";
-            return 0;
-        }
-    int total_damage = base_damage;
-        target.take_damage(total_damage);
-        current_stamina -= 10;
-        return total_damage;
-    }
+    virtual int attack(Entity& target);
     
-    virtual void defend() {
-        is_defending = true;
-        current_stamina -= 5;
-        current_hp += defense; 
-        std::cout << "Bracing for impact!\n";
-    }
+    virtual void defend();
     
     int get_health() const { return current_hp; }
     
@@ -77,17 +59,7 @@ public:
 
     void equip_shield(Shield* shield);
     
-    void defend() override {
-        if (current_stamina >= 5) {
-            Entity::defend();
-            if (equipped_shield) {
-                defense += equipped_shield->get_defense();
-                std::cout << "Shield boosts your defense!\n";
-            }
-        } else {
-            std::cout << "Not enough stamina to defend!\n";
-        }
-    }
+    void defend() override;
 
     void restore_hp() {
         current_hp = max_hp;
