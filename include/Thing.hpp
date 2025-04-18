@@ -7,7 +7,7 @@
 #include <iostream>
 #include <algorithm>
 
-// Forward declarations
+///< Forward declarations
 class Player;
 class Item;
 

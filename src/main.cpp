@@ -1,3 +1,8 @@
+/**
+ * @file main.cpp
+ * @brief Main game implementation with combat system and quest management.
+ */
+
 #include "Game.hpp"
 #include "Characters.hpp"
 #include "Quests.hpp"
@@ -5,23 +10,41 @@
 #include "House.hpp"
 #include "Menu.hpp"
 #include <iostream>
+#include <memory>
+#include <typeinfo>
+#include <vector>
 
-// Function to simulate a fight between the player and a Goblin
-void fight_goblin(Player& player, Goblin& goblin) {
+// Forward declarations
+template<typename T>
+void fight(Player& player, T& enemy, std::shared_ptr<Quests> quest = nullptr);
+void display_encounter_message(const Entity& enemy);
+void initialize_game(Game& game, Player& player, Menu& menu);
+void display_main_menu();
+
+/**
+ * @brief Generic combat function that handles player vs enemy battles
+ * @tparam T The enemy type (must inherit from Entity)
+ * @param player Reference to the Player object
+ * @param enemy Reference to the Enemy object
+ * @param quest Optional quest to update upon victory
+ */
+template<typename T>
+void fight(Player& player, T& enemy, std::shared_ptr<Quests> quest) {
     std::cout << "\n=== Fight Started ===" << std::endl;
-    std::cout << "You are fighting a Goblin!" << std::endl;
+    display_encounter_message(enemy);
 
-    while (player.get_health() > 0 && goblin.get_health() > 0) {
-        // Auto-flee if conditions are met
+    while (player.get_health() > 0 && enemy.get_health() > 0) {
+        // Auto-flee if player is too weak
         if (player.get_health() < 20 || player.get_stamina() < 10) {
             std::cout << "You're too weak! Running away automatically...\n";
             return;
         }
 
+        // Combat menu
         std::cout << "\n=== Combat Menu ===" << std::endl;
         std::cout << "1. Attack" << std::endl;
         std::cout << "2. Defend" << std::endl;
-        std::cout << "3. Use Item" << std::endl;
+        std::cout << "3. Use Health Potion" << std::endl;
         std::cout << "4. Run Away" << std::endl;
         std::cout << "Enter your choice: ";
 
@@ -30,7 +53,7 @@ void fight_goblin(Player& player, Goblin& goblin) {
 
         switch (choice) {
             case 1: {  // Attack
-                int damage = player.attack(goblin);
+                int damage = player.attack(enemy);
                 std::cout << "You attack for " << damage << " damage!\n";
                 break;
             }
@@ -57,128 +80,198 @@ void fight_goblin(Player& player, Goblin& goblin) {
             }
         }
 
-        // Enemy turn if still alive
-        if (goblin.get_health() > 0) {
-            goblin.action(player);
-            if (goblin.get_health() <= 0) {
-                std::cout << "You defeated the Goblin!\n";
-                goblin.drop_loot(player);
+        // Enemy's turn if still alive
+        if (enemy.get_health() > 0) {
+            enemy.action(player);
+            if (enemy.get_health() <= 0) {
+                std::cout << "\nYou defeated the " << typeid(enemy).name() << "!\n";
+                enemy.drop_loot(player);
+                
+                if (quest && !quest->check_completion()) {
+                    quest->complete_quest();
+                }
                 return;
             }
         }
 
-        // Display status
-        std::cout << "\nStatus: HP=" << player.get_health() 
+        // Display combat status
+        std::cout << "\n=== Status ===" << std::endl;
+        std::cout << "Player: HP=" << player.get_health() 
                   << "/" << player.get_max_health()
                   << " ST=" << player.get_stamina()
-                  << "/" << player.get_max_stamina() << "\n";
-        std::cout << "Goblin: HP=" << goblin.get_health() << "\n";
+                  << "/" << player.get_max_stamina() << std::endl;
+        std::cout << "Enemy: HP=" << enemy.get_health() << std::endl;
     }
 }
 
-int main() {
-    // Initialize the game
-    Game game;
+/**
+ * @brief Displays enemy-specific encounter message
+ * @param enemy Reference to the encountered enemy
+ */
+void display_encounter_message(const Entity& enemy) {
+    if (dynamic_cast<const Goblin*>(&enemy)) {
+        std::cout << "A nasty goblin jumps out from the bushes!\n";
+    } 
+    else if (dynamic_cast<const Skeleton*>(&enemy)) {
+        std::cout << "Bones rattle as an ancient skeleton rises from the ground!\n";
+    } 
+    else if (dynamic_cast<const Boss*>(&enemy)) {
+        std::cout << "The ground shakes as the mighty boss appears!\n";
+    }
+    std::cout << "Prepare for battle!\n";
+}
+
+/**
+ * @brief Initializes game objects and quests
+ * @param game Reference to the Game object
+ * @param player Reference to the Player object
+ * @param menu Reference to the Menu object
+ */
+void initialize_game(Game& game, Player& player, Menu& menu) {
     game.start_game();
+    
+    // Create quests
+    auto goblinQuest = std::make_shared<Quests>(
+        "Q1", 
+        "Goblin Extermination", 
+        "Defeat 3 goblins in the forest",
+        "100 Gold"
+    );
+    
+    auto skeletonQuest = std::make_shared<Quests>(
+        "Q2", 
+        "Ancient Bones", 
+        "Defeat the skeleton warrior in the crypt",
+        "Mystic Bone"
+    );
+    
+    auto bossQuest = std::make_shared<Quests>(
+        "Q3", 
+        "Final Challenge", 
+        "Defeat the Dragon Lord",
+        "Dragon Artifact and 500 Gold"
+    );
 
-    // Create a player
-    Player player;
+    // Add quests to menu
+    menu.add_quest(goblinQuest);
+    menu.add_quest(skeletonQuest);
+    menu.add_quest(bossQuest);
+    
+    // Start initial quest
+    menu.start_quest("Q1");
+}
 
-   // Create a Goblin enemy with some loot
-   Goblin goblin(nullptr, "A nasty little Goblin");
-   auto gold = std::make_shared<Drugs>("Gold Coin", 0); // 0 healing since it's gold
-   goblin.add_loot(gold);
-   
-    // Create a quest
-    auto quest = std::make_shared<Quests>("1", "Defeat the Goblin", "Defeat the goblin in the forest", "Gold and Experience");
+/**
+ * @brief Displays the main game menu
+ */
+void display_main_menu() {
+    std::cout << "\n=== Main Menu ===" << std::endl;
+    std::cout << "1. Forest (Goblins)" << std::endl;
+    std::cout << "2. Crypt (Skeletons)" << std::endl;
+    std::cout << "3. Dragon's Lair (Boss)" << std::endl;
+    std::cout << "4. View Quests" << std::endl;
+    std::cout << "5. Player Status" << std::endl;
+    std::cout << "6. Exit Game" << std::endl;
+    std::cout << "Enter your choice: ";
+}
+
+int main() {
+    // Initialize game systems
+    Game game;
+    Player player;  // Using default constructor
     Menu menu(&player);
-    menu.add_quest(quest);
-
-    // Start the quest
-    menu.start_quest("1");
-
-    // Simulate game loop
-    int choice;
-    while (true) {
-        std::cout << "\n=== Game Menu ===" << std::endl;
-        std::cout << "1. Explore Location" << std::endl;
-        std::cout << "2. Interact with Environment" << std::endl;
-        std::cout << "3. Check Quests" << std::endl;
-        std::cout << "4. Move to Neighbor Location" << std::endl;
-        std::cout << "5. Fight Goblin" << std::endl;
-        std::cout << "6. Exit Game" << std::endl;
-        std::cout << "Enter your choice: ";
+    
+    // Create enemies
+    Goblin goblin1(nullptr, "Green Goblin");
+    Goblin goblin2(nullptr, "Red Goblin");
+    Goblin goblin3(nullptr, "Goblin Chief");
+    
+    Skeleton skeleton(nullptr, "Ancient Skeleton");
+    Boss boss(nullptr, "Dragon Lord");
+    
+    // Add loot to enemies
+    auto gold = std::make_shared<Drugs>("Gold", 0);
+    auto potion = std::make_shared<Drugs>("Health Potion", 20);
+    auto bone = std::make_shared<Drugs>("Mystic Bone", 0);
+    auto artifact = std::make_shared<Drugs>("Dragon Artifact", 0);
+    
+    goblin1.add_loot(gold);
+    goblin2.add_loot(potion);
+    goblin3.add_loot(gold);
+    skeleton.add_loot(bone);
+    boss.add_loot(artifact);
+    
+    // Initialize game state
+    initialize_game(game, player, menu);
+    
+    // Game loop
+    bool running = true;
+    int goblinsDefeated = 0;
+    
+    while (running && player.get_health() > 0) {
+        display_main_menu();
+        
+        int choice;
         std::cin >> choice;
-
+        
         switch (choice) {
-            case 1: {
-                // Explore the current location
-                game.interact_with_environment();
-                break;
-            }
-            case 2: {
-                // Interact with an object in the location
-                std::string object_name;
-                std::cout << "Enter the name of the object to interact with: ";
-                std::cin >> object_name;
-                // Simulate interaction (e.g., opening a chest)
-                if (object_name == "chest") {
-                    auto chest = std::make_shared<Chest>("Treasure Chest");
-                    auto potion = std::make_shared<Drugs>("Health Potion", 20);
-                    chest->put_item(potion);
-                    chest->interact();
-                    auto item = chest->retrieve_item("Health Potion");
-                    if (item) {
-                        player.add_to_inventory(item);
+            case 1: {  // Forest - Goblins
+                Goblin* currentGoblin = nullptr;
+                if (goblinsDefeated == 0) currentGoblin = &goblin1;
+                else if (goblinsDefeated == 1) currentGoblin = &goblin2;
+                else currentGoblin = &goblin3;
+                
+                fight(player, *currentGoblin, nullptr);  // Removed quest parameter
+                if (currentGoblin->get_health() <= 0) {
+                    goblinsDefeated++;
+                    if (goblinsDefeated >= 3) {
+                        menu.update_quest_progress("Q1", 100);
                     }
-                } else {
-                    std::cout << "No such object in the location." << std::endl;
                 }
                 break;
             }
-            case 3: {
-                // Check quests
-                quest->display_info();
-                if (!quest->check_completion()) {
-                    std::cout << "Updating quest progress..." << std::endl;
-                    menu.update_quest_progress("1", 50); // Simulate progress
-                    menu.update_quest_progress("1", 50); // Complete the quest
-                }
+            case 2: {  // Crypt - Skeleton
+                fight(player, skeleton, nullptr);  // Removed quest parameter
                 break;
             }
-            case 4: {
-                // Move to a neighboring location
-                std::string neighbor_name;
-                std::cout << "Enter the name of the neighboring location to move to: ";
-                std::cin >> neighbor_name;
-                if (!game.move_to_neighbor(neighbor_name)) {
-                    std::cout << "Failed to move to " << neighbor_name << "." << std::endl;
-                }
+            case 3: {  // Boss
+                // Simplified boss fight without quest dependency
+                fight(player, boss, nullptr);  // Removed quest parameter
                 break;
             }
-            case 5: {
-                // Fight the Goblin
-                fight_goblin(player, goblin);
-                if (goblin.get_health() <= 0) {
-                    quest->complete_quest();
-                    std::cout << "Quest completed: Defeat the Goblin" << std::endl;
-                }
+            case 4: {  // View Quests
+                // Removed quest display since we don't have get_quests()
+                std::cout << "Quest feature not fully implemented yet.\n";
                 break;
             }
-            case 6: {
-                // Exit the game
-                std::cout << "Exiting the game. Goodbye!" << std::endl;
-                return 0;
+            case 5: {  // Player Status
+                std::cout << "\n=== Player Status ===" << std::endl;
+                std::cout << "HP: " << player.get_health() 
+                          << "/" << player.get_max_health() << std::endl;
+                std::cout << "Stamina: " << player.get_stamina()
+                          << "/" << player.get_max_stamina() << std::endl;
+                break;
+            }
+            case 6: {  // Exit
+                running = false;
+                std::cout << "Thanks for playing!\n";
+                break;
             }
             default: {
-                std::cout << "Invalid choice. Please try again." << std::endl;
+                std::cout << "Invalid choice!\n";
                 break;
             }
         }
-
-        // Advance the game turn
+        
+        // Advance game state
         game.advance_turn();
+        // Removed stamina recovery since the method doesn't exist
     }
-
+    
+    if (player.get_health() <= 0) {
+        std::cout << "\n=== GAME OVER ===\n";
+        std::cout << "You have been defeated...\n";
+    }
+    
     return 0;
 }

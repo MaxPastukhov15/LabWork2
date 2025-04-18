@@ -5,7 +5,7 @@
 #include <vector>
 #include <memory>
 #include "Thing.hpp"
-// Forward declarations
+///< Forward declarations
 class Item;
 class Weapon;
 class Shield;
