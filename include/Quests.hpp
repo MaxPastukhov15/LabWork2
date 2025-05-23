@@ -1,7 +1,4 @@
-/**
- * @file Quests.hpp
- * @brief Header for the Quests class which manages game quests.
- */
+// Maksim Pastukhov B82 mail: st131119@student.spbu.ru
 
 #ifndef QUESTS_HPP
 #define QUESTS_HPP

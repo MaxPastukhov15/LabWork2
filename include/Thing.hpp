@@ -1,3 +1,4 @@
+// Maksim Pastukhov B82 mail: st131119@student.spbu.ru
 #ifndef THING_HPP
 #define THING_HPP
 

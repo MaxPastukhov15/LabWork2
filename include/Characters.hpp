@@ -1,3 +1,4 @@
+// Maksim Pastukhov B82 mail: st131119@student.spbu.ru
 #ifndef CHARACTERS_HPP
 #define CHARACTERS_HPP
 
