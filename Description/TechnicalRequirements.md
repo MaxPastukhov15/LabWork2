@@ -1,4 +1,4 @@
-##Technical Requirements for the Game
+## Technical Requirements for the Game
 1. Platform Compatibility
 - **Operating System: The game must run on Ubuntu 20.04 LTS or later.**(for better experience)
 2. System Requirements
