@@ -10,9 +10,10 @@
 #include <map>
 
 // Function to simulate a fight between the player and an enemy
-void fight_enemy(Player& player, Enemy& enemy) {
+void fight_enemy(Player& player, Enemy& enemy, const std::string& enemy_type) {
     std::cout << "\n=== Fight Started ===" << std::endl;
-    std::cout << "You are fighting a " << enemy.get_name() << "!" << std::endl;
+    std::cout << "You are fighting ";
+    enemy.display_info(); // Use display_info() instead of get_name()
 
     while (player.get_health() > 0 && enemy.get_health() > 0) {
         if (player.get_health() < 20 || player.get_stamina() < 10) {
@@ -62,7 +63,8 @@ void fight_enemy(Player& player, Enemy& enemy) {
         if (enemy.get_health() > 0) {
             enemy.action(player);
             if (enemy.get_health() <= 0) {
-                std::cout << "You defeated the enemy!\n";
+                std::cout << "You defeated the ";
+                enemy.display_info();
                 enemy.drop_loot(player);
                 return;
             }
@@ -72,7 +74,7 @@ void fight_enemy(Player& player, Enemy& enemy) {
                   << "/" << player.get_max_health()
                   << " ST=" << player.get_stamina()
                   << "/" << player.get_max_stamina() << "\n";
-        std::cout << "Enemy: HP=" << enemy.get_health() << "\n";
+        std::cout << "Enemy HP=" << enemy.get_health() << "\n";
     }
 }
 
@@ -184,13 +186,13 @@ int main() {
                 std::getline(std::cin, object);
 
                 if (current_location == "Forest" && object == "Goblin") {
-                    fight_enemy(player, *enemies[0]);
+                    fight_enemy(player, *enemies[0], "Goblin");
                     if (enemies[0]->get_health() <= 0) {
                         quests[0]->complete_quest();
                     }
                 } 
                 else if (current_location == "Cave" && object == "Skeleton") {
-                    fight_enemy(player, *enemies[1]);
+                    fight_enemy(player, *enemies[1], "Skeleton");
                     if (enemies[1]->get_health() <= 0) {
                         quests[1]->complete_quest();
                     }
