@@ -9,11 +9,11 @@
 #include <vector>
 #include <map>
 
-// Function to simulate a fight between the player and an enemy
-void fight_enemy(Player& player, Enemy& enemy, const std::string& enemy_type) {
+// Template function to fight any enemy type
+template<typename EnemyType>
+void fight_enemy(Player& player, EnemyType& enemy) {
     std::cout << "\n=== Fight Started ===" << std::endl;
-    std::cout << "You are fighting ";
-    enemy.display_info(); // Use display_info() instead of get_name()
+    enemy.display_info();
 
     while (player.get_health() > 0 && enemy.get_health() > 0) {
         if (player.get_health() < 20 || player.get_stamina() < 10) {
@@ -63,7 +63,7 @@ void fight_enemy(Player& player, Enemy& enemy, const std::string& enemy_type) {
         if (enemy.get_health() > 0) {
             enemy.action(player);
             if (enemy.get_health() <= 0) {
-                std::cout << "You defeated the ";
+                std::cout << "You defeated the enemy!\n";
                 enemy.display_info();
                 enemy.drop_loot(player);
                 return;
@@ -86,65 +86,53 @@ int main() {
     // Create a player
     Player player;
 
-    // Create enemies using vector
-    std::vector<std::shared_ptr<Enemy>> enemies;
-    enemies.push_back(std::shared_ptr<Enemy>(new Goblin(nullptr, "A nasty little Goblin")));
-    enemies.push_back(std::shared_ptr<Enemy>(new Skeleton(nullptr, "An ancient Skeleton")));
-    
+    // Create specific enemy types
+    Goblin goblin(nullptr, "A nasty little Goblin");
+    Skeleton skeleton(nullptr, "An ancient Skeleton");
+
     // Add loot to enemies
     std::shared_ptr<Drugs> gold(new Drugs("Gold Coin", 0));
-    enemies[0]->add_loot(gold);
+    goblin.add_loot(gold);
     
     std::shared_ptr<Drugs> bone(new Drugs("Mysterious Bone", 0));
-    enemies[1]->add_loot(bone);
+    skeleton.add_loot(bone);
 
-    // Create a house with interactive objects using vector
+    // Create a house with interactive objects
     House player_house;
-    std::vector<std::shared_ptr<Thing>> house_objects;
-    house_objects.push_back(std::shared_ptr<Thing>(new Bed("Comfy Bed")));
-    house_objects.push_back(std::shared_ptr<Thing>(new Chest("Storage Chest")));
-    
-    std::dynamic_pointer_cast<Chest>(house_objects[1])->put_item(std::shared_ptr<Drugs>(new Drugs("Health Potion", 20)));
-    
-    for (auto& obj : house_objects) {
-        player_house.addThing(obj);
-    }
+    auto house_bed = std::make_shared<Bed>("Comfy Bed");
+    auto house_chest = std::make_shared<Chest>("Storage Chest");
+    house_chest->put_item(std::make_shared<Drugs>("Health Potion", 20));
+    player_house.addThing(house_bed);
+    player_house.addThing(house_chest);
 
-    // Create quests using vector
-    std::vector<std::shared_ptr<Quests>> quests;
-    quests.push_back(std::shared_ptr<Quests>(new Quests("1", "Goblin Menace", "Defeat the goblin in the forest", "50 Gold")));
-    quests.push_back(std::shared_ptr<Quests>(new Quests("2", "Skeleton Key", "Find the ancient skeleton in the cave", "Magic Bone")));
-    quests.push_back(std::shared_ptr<Quests>(new Quests("3", "Home Comfort", "Rest in your house", "Full Restore")));
+    // Create quests
+    auto quest1 = std::make_shared<Quests>("1", "Goblin Menace", "Defeat the goblin in the forest", "50 Gold");
+    auto quest2 = std::make_shared<Quests>("2", "Skeleton Key", "Find the ancient skeleton in the cave", "Magic Bone");
+    auto quest3 = std::make_shared<Quests>("3", "Home Comfort", "Rest in your house", "Full Restore");
 
     Menu menu(&player);
-    for (auto& quest : quests) {
-        menu.add_quest(quest);
-    }
+    menu.add_quest(quest1);
+    menu.add_quest(quest2);
+    menu.add_quest(quest3);
 
     // Start the first quest
     menu.start_quest("1");
 
     // Game locations
-    std::map<std::string, std::vector<std::string>> locations;
-    locations["Forest"].push_back("Cave");
-    locations["Forest"].push_back("House");
-    locations["Cave"].push_back("Forest");
-    locations["Cave"].push_back("Graveyard");
-    locations["Graveyard"].push_back("Cave");
-    locations["House"].push_back("Forest");
+    std::map<std::string, std::vector<std::string>> locations = {
+        {"Forest", {"Cave", "House"}},
+        {"Cave", {"Forest", "Graveyard"}},
+        {"Graveyard", {"Cave"}},
+        {"House", {"Forest"}}
+    };
 
     // Available interactions per location
-    std::map<std::string, std::vector<std::string>> interactions;
-    interactions["Forest"].push_back("Old Tree");
-    interactions["Forest"].push_back("Broken Cart");
-    interactions["Forest"].push_back("Goblin");
-    interactions["Cave"].push_back("Stalactites");
-    interactions["Cave"].push_back("Strange Mushrooms");
-    interactions["Cave"].push_back("Skeleton");
-    interactions["Graveyard"].push_back("Ancient Tombstone");
-    interactions["Graveyard"].push_back("Weathered Statue");
-    interactions["House"].push_back("Bed");
-    interactions["House"].push_back("Chest");
+    std::map<std::string, std::vector<std::string>> interactions = {
+        {"Forest", {"Old Tree", "Broken Cart", "Goblin"}},
+        {"Cave", {"Stalactites", "Strange Mushrooms", "Skeleton"}},
+        {"Graveyard", {"Ancient Tombstone", "Weathered Statue"}},
+        {"House", {"Bed", "Chest"}}
+    };
 
     // Current location
     std::string current_location = "Forest";
@@ -153,18 +141,12 @@ int main() {
     while (true) {
         std::cout << "\n=== You are in " << current_location << " ===" << std::endl;
         std::cout << "Available interactions: ";
-        for (size_t i = 0; i < interactions[current_location].size(); ++i) {
-            std::cout << interactions[current_location][i];
-            if (i != interactions[current_location].size() - 1) {
-                std::cout << ", ";
-            }
+        for (const auto& item : interactions[current_location]) {
+            std::cout << item << ", ";
         }
         std::cout << "\nNeighboring locations: ";
-        for (size_t i = 0; i < locations[current_location].size(); ++i) {
-            std::cout << locations[current_location][i];
-            if (i != locations[current_location].size() - 1) {
-                std::cout << ", ";
-            }
+        for (const auto& loc : locations[current_location]) {
+            std::cout << loc << ", ";
         }
 
         std::cout << "\n\n=== Game Menu ===" << std::endl;
@@ -186,22 +168,22 @@ int main() {
                 std::getline(std::cin, object);
 
                 if (current_location == "Forest" && object == "Goblin") {
-                    fight_enemy(player, *enemies[0], "Goblin");
-                    if (enemies[0]->get_health() <= 0) {
-                        quests[0]->complete_quest();
+                    fight_enemy<Goblin>(player, goblin);
+                    if (goblin.get_health() <= 0) {
+                        quest1->complete_quest();
                     }
                 } 
                 else if (current_location == "Cave" && object == "Skeleton") {
-                    fight_enemy(player, *enemies[1], "Skeleton");
-                    if (enemies[1]->get_health() <= 0) {
-                        quests[1]->complete_quest();
+                    fight_enemy<Skeleton>(player, skeleton);
+                    if (skeleton.get_health() <= 0) {
+                        quest2->complete_quest();
                     }
                 }
                 else if (current_location == "House") {
                     player_house.interactWithThing(object);
                     if (object == "Bed") {
-                        quests[2]->update_progress(100);
-                        quests[2]->complete_quest();
+                        quest3->update_progress(100);
+                        quest3->complete_quest();
                     }
                 }
                 else {
@@ -214,15 +196,8 @@ int main() {
                 std::string new_loc;
                 std::cin >> new_loc;
                 
-                bool found = false;
-                for (const auto& loc : locations[current_location]) {
-                    if (loc == new_loc) {
-                        found = true;
-                        break;
-                    }
-                }
-                
-                if (found) {
+                if (std::find(locations[current_location].begin(), 
+                             locations[current_location].end(), new_loc) != locations[current_location].end()) {
                     current_location = new_loc;
                     std::cout << "You travel to " << new_loc << ".\n";
                 } else {
@@ -232,9 +207,9 @@ int main() {
             }
             case 3: {
                 std::cout << "\n=== Active Quests ===" << std::endl;
-                for (auto& quest : quests) {
-                    quest->display_info();
-                }
+                quest1->display_info();
+                quest2->display_info();
+                quest3->display_info();
                 break;
             }
             case 4: {
