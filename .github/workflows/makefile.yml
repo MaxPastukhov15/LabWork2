@@ -27,5 +27,5 @@ jobs:
 
       - name: Build project
         run: make -C tests 
-      - name: Run tests
-        run: ./test
+      - name: Run
+        run: ./test -C tests
