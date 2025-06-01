@@ -5,9 +5,12 @@
 #include "Thing.hpp"
 #include "House.hpp"
 #include "Menu.hpp"
+
 #include <iostream>
 #include <vector>
 #include <map>
+#include <limits>
+#include <algorithm>
 
 // Template function to fight any enemy type
 template<typename EnemyType>
@@ -29,7 +32,11 @@ void fight_enemy(Player& player, EnemyType& enemy) {
         std::cout << "Enter your choice: ";
 
         int choice;
-        std::cin >> choice;
+        while(!(std::cin >> choice) || choice < 1 || choice > 4){
+        	std::cin.clear();
+        	std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        	std::cout << "Invalid choice! Please enter a number 1 and 4\n";
+        }
 
         switch (choice) {
             case 1: {
@@ -136,7 +143,8 @@ int main() {
 
     // Current location
     std::string current_location = "Forest";
-
+    
+    
     // Game loop
     while (true) {
         std::cout << "\n=== You are in " << current_location << " ===" << std::endl;
@@ -158,10 +166,14 @@ int main() {
         std::cout << "Enter your choice: ";
         
         int choice;
-        std::cin >> choice;
-
+        while(!(std::cin >> choice) || choice < 1 || choice > 5){
+        	std::cin.clear();
+        	std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        	std::cout << "Invalid choice! Please enter a number 1 and 5\n";
+        }
+        
         switch (choice) {
-            case 1: {
+            case 1:{ 
                 std::cout << "Choose object to interact with: ";
                 std::string object;
                 std::cin.ignore();
@@ -182,16 +194,18 @@ int main() {
                 else if (current_location == "House") {
                     player_house.interactWithThing(object);
                     if (object == "Bed") {
+                    	house_bed->restore(player);
                         quest3->update_progress(100);
                         quest3->complete_quest();
                     }
                 }
+                
                 else {
                     std::cout << "You examine the " << object << " but nothing interesting happens.\n";
                 }
                 break;
             }
-            case 2: {
+            case 2:{ 
                 std::cout << "Where do you want to go? ";
                 std::string new_loc;
                 std::cin >> new_loc;
@@ -205,26 +219,26 @@ int main() {
                 }
                 break;
             }
-            case 3: {
+            case 3:{ 
                 std::cout << "\n=== Active Quests ===" << std::endl;
                 quest1->display_info();
                 quest2->display_info();
                 quest3->display_info();
                 break;
             }
-            case 4: {
+            case 4:{ 
                 current_location = "House";
                 std::cout << "You return to your house.\n";
                 break;
             }
-            case 5: {
+            case 5:{ 
                 std::cout << "Exiting the game. Goodbye!" << std::endl;
                 return 0;
             }
-            default: {
+            default: 
                 std::cout << "Invalid choice. Please try again." << std::endl;
                 break;
-            }
+            
         }
 
         // Advance the game turn
