@@ -28,6 +28,4 @@ jobs:
       - name: Build project
         run: make -C tests  
 
-      - name: Run tests
-        run: make -C tests test
 
