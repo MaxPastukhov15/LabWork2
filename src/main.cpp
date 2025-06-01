@@ -198,6 +198,68 @@ int main() {
                         quest3->update_progress(100);
                         quest3->complete_quest();
                     }
+                    else if (object == "Chest") {
+                        std::cout << "\n=== Chest Menu ===" << std::endl;
+                        std::cout << "1. List items in chest" << std::endl;
+                        std::cout << "2. Take item from chest" << std::endl;
+                        std::cout << "3. Put item into chest" << std::endl;
+                        std::cout << "4. Back" << std::endl;
+                        std::cout << "Enter your choice: ";
+                        
+                        int chest_choice;
+                        while(!(std::cin >> chest_choice) || chest_choice < 1 || chest_choice > 4) {
+                            std::cin.clear();
+                            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                            std::cout << "Invalid choice! Please enter a number between 1 and 4\n";
+                        }
+                        
+                        switch (chest_choice) {
+                            case 1: // List items
+                                std::cout << "Items in chest:" << std::endl;
+                                house_chest->list_items();
+                                break;
+                                
+                            case 2: { // Take item
+                                std::cout << "Enter item name to take: ";
+                                std::string item_name;
+                                std::cin.ignore();
+                                std::getline(std::cin, item_name);
+                                auto item = house_chest->retrieve_item(item_name);
+                                if (item) {
+                                    player.add_to_inventory(item);
+                                }
+                                break;
+                            }
+                            
+                            case 3: { // Put item
+                                // First show player's inventory
+                                std::cout << "Your inventory:" << std::endl;
+                            
+                                std::cout << "- Health Potion" << std::endl;
+                                
+                                std::cout << "Enter item name to store (or 'cancel' to go back): ";
+                                std::string item_name;
+                                std::cin.ignore();
+                                std::getline(std::cin, item_name);
+                                
+                                if (item_name == "cancel") {
+                                    break;
+                                }
+                                
+                                if (item_name == "Health Potion") {
+                                    auto potion = std::make_shared<Drugs>("Health Potion", 20);
+                                    house_chest->put_item(potion);
+                                    std::cout << "Stored Health Potion in the chest." << std::endl;
+                                } else {
+                                    std::cout << "You don't have that item!" << std::endl;
+                                }
+                                break;
+                            }
+                            
+                            case 4: // Back
+                                break;
+                        }
+                    }
                 }
                 
                 else {
