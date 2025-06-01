@@ -2,9 +2,9 @@ name: Makefile CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "GameKernel" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "GameKernel" ]
 
 jobs:
   build:
