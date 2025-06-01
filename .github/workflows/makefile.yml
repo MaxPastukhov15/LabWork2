@@ -26,11 +26,6 @@ jobs:
           sudo cmake --install build  # Installs gtest globally
 
       - name: Build project
-        run: make -C tests  
-
+        run: make -C tests 
       - name: Run tests
-        run: make -C tests test
-
-
-    - name: Run tests
-      run: ./test
+        run: ./test
