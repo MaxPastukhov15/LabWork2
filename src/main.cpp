@@ -6,14 +6,16 @@
 #include "House.hpp"
 #include "Menu.hpp"
 #include <iostream>
+#include <vector>
+#include <map>
 
-// Function to simulate a fight between the player and a Goblin
-void fight_goblin(Player& player, Goblin& goblin) {
+// Template function to fight any enemy type
+template<typename EnemyType>
+void fight_enemy(Player& player, EnemyType& enemy) {
     std::cout << "\n=== Fight Started ===" << std::endl;
-    std::cout << "You are fighting a Goblin!" << std::endl;
+    enemy.display_info();
 
-    while (player.get_health() > 0 && goblin.get_health() > 0) {
-        // Auto-flee if conditions are met
+    while (player.get_health() > 0 && enemy.get_health() > 0) {
         if (player.get_health() < 20 || player.get_stamina() < 10) {
             std::cout << "You're too weak! Running away automatically...\n";
             return;
@@ -30,17 +32,17 @@ void fight_goblin(Player& player, Goblin& goblin) {
         std::cin >> choice;
 
         switch (choice) {
-            case 1: {  // Attack
-                int damage = player.attack(goblin);
+            case 1: {
+                int damage = player.attack(enemy);
                 std::cout << "You attack for " << damage << " damage!\n";
                 break;
             }
-            case 2: {  // Defend
+            case 2: {
                 player.defend();
                 break;
             }
-            case 3: {  // Use Item
-                auto potion = std::make_shared<Drugs>("Health Potion", 20);
+            case 3: {
+                std::shared_ptr<Drugs> potion(new Drugs("Health Potion", 20));
                 if (player.get_health() < player.get_max_health()) {
                     player.use_item(potion);
                 } else {
@@ -48,7 +50,7 @@ void fight_goblin(Player& player, Goblin& goblin) {
                 }
                 break;
             }
-            case 4: {  // Run
+            case 4: {
                 std::cout << "You retreat from battle!\n";
                 return;
             }
@@ -58,22 +60,21 @@ void fight_goblin(Player& player, Goblin& goblin) {
             }
         }
 
-        // Enemy turn if still alive
-        if (goblin.get_health() > 0) {
-            goblin.action(player);
-            if (goblin.get_health() <= 0) {
-                std::cout << "You defeated the Goblin!\n";
-                goblin.drop_loot(player);
+        if (enemy.get_health() > 0) {
+            enemy.action(player);
+            if (enemy.get_health() <= 0) {
+                std::cout << "You defeated the enemy!\n";
+                enemy.display_info();
+                enemy.drop_loot(player);
                 return;
             }
         }
 
-        // Display status
         std::cout << "\nStatus: HP=" << player.get_health() 
                   << "/" << player.get_max_health()
                   << " ST=" << player.get_stamina()
                   << "/" << player.get_max_stamina() << "\n";
-        std::cout << "Goblin: HP=" << goblin.get_health() << "\n";
+        std::cout << "Enemy HP=" << enemy.get_health() << "\n";
     }
 }
 
@@ -85,89 +86,138 @@ int main() {
     // Create a player
     Player player;
 
-   // Create a Goblin enemy with some loot
-   Goblin goblin(nullptr, "A nasty little Goblin");
-   auto gold = std::make_shared<Drugs>("Gold Coin", 0); // 0 healing since it's gold
-   goblin.add_loot(gold);
-   
-    // Create a quest
-    auto quest = std::make_shared<Quests>("1", "Defeat the Goblin", "Defeat the goblin in the forest", "Gold and Experience");
-    Menu menu(&player);
-    menu.add_quest(quest);
+    // Create specific enemy types
+    Goblin goblin(nullptr, "A nasty little Goblin");
+    Skeleton skeleton(nullptr, "An ancient Skeleton");
 
-    // Start the quest
+    // Add loot to enemies
+    std::shared_ptr<Drugs> gold(new Drugs("Gold Coin", 0));
+    goblin.add_loot(gold);
+    
+    std::shared_ptr<Drugs> bone(new Drugs("Mysterious Bone", 0));
+    skeleton.add_loot(bone);
+
+    // Create a house with interactive objects
+    House player_house;
+    auto house_bed = std::make_shared<Bed>("Comfy Bed");
+    auto house_chest = std::make_shared<Chest>("Storage Chest");
+    house_chest->put_item(std::make_shared<Drugs>("Health Potion", 20));
+    player_house.addThing(house_bed);
+    player_house.addThing(house_chest);
+
+    // Create quests
+    auto quest1 = std::make_shared<Quests>("1", "Goblin Menace", "Defeat the goblin in the forest", "50 Gold");
+    auto quest2 = std::make_shared<Quests>("2", "Skeleton Key", "Find the ancient skeleton in the cave", "Magic Bone");
+    auto quest3 = std::make_shared<Quests>("3", "Home Comfort", "Rest in your house", "Full Restore");
+
+    Menu menu(&player);
+    menu.add_quest(quest1);
+    menu.add_quest(quest2);
+    menu.add_quest(quest3);
+
+    // Start the first quest
     menu.start_quest("1");
 
-    // Simulate game loop
-    int choice;
+    // Game locations
+    std::map<std::string, std::vector<std::string>> locations = {
+        {"Forest", {"Cave", "House"}},
+        {"Cave", {"Forest", "Graveyard"}},
+        {"Graveyard", {"Cave"}},
+        {"House", {"Forest"}}
+    };
+
+    // Available interactions per location
+    std::map<std::string, std::vector<std::string>> interactions = {
+        {"Forest", {"Old Tree", "Broken Cart", "Goblin"}},
+        {"Cave", {"Stalactites", "Strange Mushrooms", "Skeleton"}},
+        {"Graveyard", {"Ancient Tombstone", "Weathered Statue"}},
+        {"House", {"Bed", "Chest"}}
+    };
+
+    // Current location
+    std::string current_location = "Forest";
+
+    // Game loop
     while (true) {
-        std::cout << "\n=== Game Menu ===" << std::endl;
-        std::cout << "1. Explore Location" << std::endl;
-        std::cout << "2. Interact with Environment" << std::endl;
+        std::cout << "\n=== You are in " << current_location << " ===" << std::endl;
+        std::cout << "Available interactions: ";
+        for (const auto& item : interactions[current_location]) {
+            std::cout << item << ", ";
+        }
+        std::cout << "\nNeighboring locations: ";
+        for (const auto& loc : locations[current_location]) {
+            std::cout << loc << ", ";
+        }
+
+        std::cout << "\n\n=== Game Menu ===" << std::endl;
+        std::cout << "1. Interact with object" << std::endl;
+        std::cout << "2. Move to new location" << std::endl;
         std::cout << "3. Check Quests" << std::endl;
-        std::cout << "4. Move to Neighbor Location" << std::endl;
-        std::cout << "5. Fight Goblin" << std::endl;
-        std::cout << "6. Exit Game" << std::endl;
+        std::cout << "4. Visit House" << std::endl;
+        std::cout << "5. Exit Game" << std::endl;
         std::cout << "Enter your choice: ";
+        
+        int choice;
         std::cin >> choice;
 
         switch (choice) {
             case 1: {
-                // Explore the current location
-                game.interact_with_environment();
+                std::cout << "Choose object to interact with: ";
+                std::string object;
+                std::cin.ignore();
+                std::getline(std::cin, object);
+
+                if (current_location == "Forest" && object == "Goblin") {
+                    fight_enemy<Goblin>(player, goblin);
+                    if (goblin.get_health() <= 0) {
+                        quest1->complete_quest();
+                    }
+                } 
+                else if (current_location == "Cave" && object == "Skeleton") {
+                    fight_enemy<Skeleton>(player, skeleton);
+                    if (skeleton.get_health() <= 0) {
+                        quest2->complete_quest();
+                    }
+                }
+                else if (current_location == "House") {
+                    player_house.interactWithThing(object);
+                    if (object == "Bed") {
+                        quest3->update_progress(100);
+                        quest3->complete_quest();
+                    }
+                }
+                else {
+                    std::cout << "You examine the " << object << " but nothing interesting happens.\n";
+                }
                 break;
             }
             case 2: {
-                // Interact with an object in the location
-                std::string object_name;
-                std::cout << "Enter the name of the object to interact with: ";
-                std::cin >> object_name;
-                // Simulate interaction (e.g., opening a chest)
-                if (object_name == "chest") {
-                    auto chest = std::make_shared<Chest>("Treasure Chest");
-                    auto potion = std::make_shared<Drugs>("Health Potion", 20);
-                    chest->put_item(potion);
-                    chest->interact();
-                    auto item = chest->retrieve_item("Health Potion");
-                    if (item) {
-                        player.add_to_inventory(item);
-                    }
+                std::cout << "Where do you want to go? ";
+                std::string new_loc;
+                std::cin >> new_loc;
+                
+                if (std::find(locations[current_location].begin(), 
+                             locations[current_location].end(), new_loc) != locations[current_location].end()) {
+                    current_location = new_loc;
+                    std::cout << "You travel to " << new_loc << ".\n";
                 } else {
-                    std::cout << "No such object in the location." << std::endl;
+                    std::cout << "You can't go there from here.\n";
                 }
                 break;
             }
             case 3: {
-                // Check quests
-                quest->display_info();
-                if (!quest->check_completion()) {
-                    std::cout << "Updating quest progress..." << std::endl;
-                    menu.update_quest_progress("1", 50); // Simulate progress
-                    menu.update_quest_progress("1", 50); // Complete the quest
-                }
+                std::cout << "\n=== Active Quests ===" << std::endl;
+                quest1->display_info();
+                quest2->display_info();
+                quest3->display_info();
                 break;
             }
             case 4: {
-                // Move to a neighboring location
-                std::string neighbor_name;
-                std::cout << "Enter the name of the neighboring location to move to: ";
-                std::cin >> neighbor_name;
-                if (!game.move_to_neighbor(neighbor_name)) {
-                    std::cout << "Failed to move to " << neighbor_name << "." << std::endl;
-                }
+                current_location = "House";
+                std::cout << "You return to your house.\n";
                 break;
             }
             case 5: {
-                // Fight the Goblin
-                fight_goblin(player, goblin);
-                if (goblin.get_health() <= 0) {
-                    quest->complete_quest();
-                    std::cout << "Quest completed: Defeat the Goblin" << std::endl;
-                }
-                break;
-            }
-            case 6: {
-                // Exit the game
                 std::cout << "Exiting the game. Goodbye!" << std::endl;
                 return 0;
             }
